@@ -55,6 +55,7 @@ def main():
     violator_content = get_telegram_post_content(violator_url)
     similarity = check_similarity(original_content, violator_content)
     # If similarity is above threshold, create a file to signal violation
+    print({'violator_url': violator_url, 'similarity': similarity})
     if similarity > 0.8:
         with open('violation_detected', 'w') as f:
             json.dump({'violator_url': violator_url, 'similarity': similarity}, f)
