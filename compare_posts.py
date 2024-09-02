@@ -58,3 +58,10 @@ def main():
     if similarity > 0.8:
         with open('violation_detected', 'w') as f:
             json.dump({'violator_url': violator_url, 'similarity': similarity}, f)
+        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+            env_file.write("VIOLATION_DETECTED=true\n")
+            env_file.write(f"SIMILARITY={similarity:.2f}\n")
+            env_file.write(f"VIOLATOR_URL={violator_url}\n")
+    else:
+        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+            env_file.write("VIOLATION_DETECTED=false\n")
