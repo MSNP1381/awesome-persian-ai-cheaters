@@ -56,13 +56,18 @@ def main():
     similarity = check_similarity(original_content, violator_content)
     # If similarity is above threshold, create a file to signal violation
     print({'violator_url': violator_url, 'similarity': similarity})
-    if similarity > 0.8:
+    threshold=.8
+    with open('violation_result.txt', 'w') as f:
+        f.write(f"VIOLATION_DETECTED={'true' if similarity > threshold else 'false'}\n")
+        f.write(f"SIMILARITY={similarity}\n")
+        f.write(f"VIOLATOR_URL={violator_url}\n")
+    if similarity > threshold:
         with open('violation_detected', 'w') as f:
             json.dump({'violator_url': violator_url, 'similarity': similarity}, f)
-        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
-            env_file.write("VIOLATION_DETECTED=true")
-            env_file.write(f"SIMILARITY={similarity:.2f}")
-            env_file.write(f"VIOLATOR_URL={violator_url}")
-    else:
-        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
-            env_file.write("VIOLATION_DETECTED=false")
+        # with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+        #     env_file.write("VIOLATION_DETECTED=true")
+        #     env_file.write(f"SIMILARITY={similarity:.2f}")
+        #     env_file.write(f"VIOLATOR_URL={violator_url}")
+    # else:
+    #     with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+    #         env_file.write("VIOLATION_DETECTED=false")

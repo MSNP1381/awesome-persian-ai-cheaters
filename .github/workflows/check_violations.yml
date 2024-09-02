@@ -19,25 +19,49 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 scikit-learn validators
+          pip install requests beautifulsoup4 scikit-learn PyGithub
 
       - name: Run comparison script
-        run: python compare_posts.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        id: compare
+        run: |
+          python compare_posts.py
+          if [ $? -ne 0 ]; then
+            echo "::error::Comparison script failed"
+            exit 1
+          fi
 
-      - name: echo result
-        run: echo  ${{env.VIOLATION_DETECTED }} ${{env.SIMILARITY}} ${{env.VIOLATOR_URL}}
+      - name: Process comparison results
+        id: process_results
+        run: |
+          if [ -f violation_result.txt ]; then
+            echo "VIOLATION_DETECTED=$(grep VIOLATION_DETECTED violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
+            echo "SIMILARITY=$(grep SIMILARITY violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
+            echo "VIOLATOR_URL=$(grep VIOLATOR_URL violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
+            echo "Results processed successfully"
+          else
+            echo "::error::violation_result.txt not found"
+            exit 1
+          fi
+
+      - name: Echo result
+        run: |
+          echo "Violation Detected: ${{ env.VIOLATION_DETECTED }}"
+          echo "Similarity: ${{ env.SIMILARITY }}"
+          echo "Violator URL: ${{ env.VIOLATOR_URL }}"
+
       - name: Update README
-        if: ${{env.VIOLATION_DETECTED == 'true'}}
+        if: env.VIOLATION_DETECTED == 'true'
         run: |
           echo "Violation detected. Updating README..."
           python update_readme.py
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to update README"
+            exit 1
+          fi
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add README.md
           git commit -m "Add new copyright violator channel"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
