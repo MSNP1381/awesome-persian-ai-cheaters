@@ -27,8 +27,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
+      - name: echo result
+        run: echo  ${{env.VIOLATION_DETECTED }} ${{env.SIMILARITY}} ${{env.VIOLATOR_URL}}
       - name: Update README
-        if: env.VIOLATION_DETECTED == 'true'
+        if: ${{env.VIOLATION_DETECTED == 'true'}}
         run: |
           echo "Violation detected. Updating README..."
           python update_readme.py
