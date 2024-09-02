@@ -1,0 +1,22 @@
+name: Report Copyright Violation
+description: Use this template to report a suspected copyright violation on Telegram.
+title: "[COPYRIGHT VIOLATION] - Original vs. Violator"
+labels: violation
+body:
+  - type: input
+    id: original_link
+    attributes:
+      label: "Original Telegram Post Link"
+      description: "Provide the link to the original Telegram post."
+      placeholder: "https://t.me/original_channel/post_id"
+    validations:
+      required: true
+
+  - type: input
+    id: violator_link
+    attributes:
+      label: "Violator Telegram Post Link"
+      description: "Provide the link to the Telegram post suspected of copying content."
+      placeholder: "https://t.me/violator_channel/post_id"
+    validations:
+      required: true

@@ -10,6 +10,8 @@ python = "^3.12"
 scikit-learn = "^1.5.1"
 bs4 = "^0.0.2"
 requests = "^2.32.3"
+python-dotenv = "^1.0.1"
+validators = "^0.33.0"
 
 
 [tool.poetry.group.dev.dependencies]
