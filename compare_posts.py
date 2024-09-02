@@ -1,11 +1,25 @@
+proxy=None
 
 import os
+import re
 import requests
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
-proxy=None
+import validators
+
+def extract_urls_from_issue_body(body):
+    # Regex pattern for Telegram URLs
+    pattern = r'(?:https?://)?t\.me/([^/\s]+)/(\d+)'
+    matches = re.findall(pattern, body)
+    
+    if len(matches) < 2:
+        return None, None
+
+    # Construct full URLs
+    urls = [f'https://t.me/{channel}/{post_id}' for channel, post_id in matches]
+    return urls[0], urls[1] 
 def get_telegram_post_content(url):
     response = requests.get(url+"?embed=1&mode=tme",proxies=proxy)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -23,14 +37,20 @@ def main():
     
     # Get issue details
     headers = {'Authorization': f'token {token}'}
-    issue_url = f'https://api.github.com/repos/OWNER/REPO/issues/{issue_number}'
+    issue_url = f'https://api.github.com/repos/MSNP1381/awesome-persian-ai-cheaters/issues/{issue_number}'
     response = requests.get(issue_url, headers=headers,proxies=proxy)
     issue_data = response.json()
-    
+    # return issue_data
     # Extract URLs from issue body
     body_lines = issue_data['body'].split('\n')
-    original_url = next((line for line in body_lines if 'Original Post Link:' in line), '').split(':')[-1].strip()
-    violator_url = next((line for line in body_lines if 'Violator Post Link:' in line), '').split(':')[-1].strip()
+    
+    original_url = next((line for line in body_lines if 'Original Post Link:' in line), '')
+    violator_url = next((line for line in body_lines if 'Violator Post Link:' in line), '')
+    # for line in body_lines:
+    #     if 'Original Post Link:' in 
+    # print('o')
+    if not validators.url(original_url): raise Exception(f"original url not valid \n url:{original_url}")
+    if not validators.url(violator_url): raise Exception(f"violator url not valid \n url:{original_url}")
     
     # Get content and check similarity
     original_content = get_telegram_post_content(original_url)
