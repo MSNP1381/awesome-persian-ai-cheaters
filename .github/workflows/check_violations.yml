@@ -56,21 +56,11 @@ jobs:
           SIMILARITY: ${{ env.SIMILARITY}}
           VIOLATOR_URL: ${{ env.VIOLATOR_URL}}
       - name: Update README
-        if: ${{env.VIOLATION_DETECTED == 'true'}}
-        run: |
-          echo "Violation detected. Updating README..."
-          python update_readme.py
-          if [ $? -ne 0 ]; then
-            echo "::error::Failed to update README"
-            exit 1
-          fi
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add README.md
-          git commit -m "Add new copyright violator channel"
-          git push
+        uses: EndBug/add-and-commit@v9
+        with:
+            add: README.md
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED}}
-          SIMILARITY: ${{ env.SIMILARITY}}
-          VIOLATOR_URL: ${{ env.VIOLATOR_URL}}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED}}
+            SIMILARITY: ${{ env.SIMILARITY}}
+            VIOLATOR_URL: ${{ env.VIOLATOR_URL}}
