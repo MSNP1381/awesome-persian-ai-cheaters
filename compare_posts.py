@@ -78,9 +78,14 @@ def main():
         f.write(f"SIMILARITY={similarity}\n")
         f.write(f"VIOLATOR_URL={violator_url}\n")
 
+
     if similarity > threshold:
         with open("violation_detected", "w") as f:
             json.dump({"violator_url": violator_url, "similarity": similarity}, f)
+        with open(os.environ["GITHUB_ENV"], "a") as f:
+            f.write(f"VIOLATION_DETECTED=true\n")
+            f.write(f"SIMILARITY={similarity}\n")
+            f.write(f"VIOLATOR_URL={violator_url}\n")
         print("Violation detected and recorded.")
     else:
         print("No violation detected.")
