@@ -2,7 +2,7 @@ name: Check Copyright Violations
 
 on:
   issues:
-    types: [opened, edited]
+    types: [opened, edited, reopened]
 
 jobs:
   check_violation:
