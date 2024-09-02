@@ -16,9 +16,12 @@ def extract_urls_from_issue_body(body):
     
     if len(matches) < 2:
         return None, None
-
+    tgc1,tgc2=matches[0][0],matches[1][0]
+    if tgc1==tgc2:
+        raise Exception(f"telegram channels are the same. \ntgc1 :{tgc1}\ntgc2:{tgc2}")
     # Construct full URLs
     urls = [f'https://t.me/{channel}/{post_id}' for channel, post_id in matches]
+    
     return urls[0], urls[1] 
 def get_telegram_post_content(url):
     response = requests.get(url+"?embed=1&mode=tme",proxies=proxy)
@@ -33,6 +36,7 @@ def check_similarity(text1, text2):
 
 def main():
     issue_number = os.environ['ISSUE_NUMBER']
+    print(issue_number)
     token = os.environ['GITHUB_TOKEN']
     
     # Get issue details
@@ -40,23 +44,16 @@ def main():
     issue_url = f'https://api.github.com/repos/MSNP1381/awesome-persian-ai-cheaters/issues/{issue_number}'
     response = requests.get(issue_url, headers=headers,proxies=proxy)
     issue_data = response.json()
-    # return issue_data
-    # Extract URLs from issue body
-    body_lines = issue_data['body'].split('\n')
+
     
-    original_url = next((line for line in body_lines if 'Original Post Link:' in line), '')
-    violator_url = next((line for line in body_lines if 'Violator Post Link:' in line), '')
-    # for line in body_lines:
-    #     if 'Original Post Link:' in 
-    # print('o')
+    original_url,violator_url=extract_urls_from_issue_body(issue_data['body'])
+
     if not validators.url(original_url): raise Exception(f"original url not valid \n url:{original_url}")
     if not validators.url(violator_url): raise Exception(f"violator url not valid \n url:{original_url}")
-    
     # Get content and check similarity
     original_content = get_telegram_post_content(original_url)
     violator_content = get_telegram_post_content(violator_url)
     similarity = check_similarity(original_content, violator_content)
-    
     # If similarity is above threshold, create a file to signal violation
     if similarity > 0.8:
         with open('violation_detected', 'w') as f:
