@@ -27,15 +27,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
-    - name: Update README
-    if: $VIOLATION_DETECTED == 'true'
-    run: |
-      echo "Violation detected. Updating README..."
-      python update_readme.py
-      git config --local user.email "action@github.com"
-      git config --local user.name "GitHub Action"
-      git add README.md
-      git commit -m "Add new copyright violator channel"
-      git push
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update README
+        if: $VIOLATION_DETECTED == 'true'
+        run: |
+          echo "Violation detected. Updating README..."
+          python update_readme.py
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git commit -m "Add new copyright violator channel"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
