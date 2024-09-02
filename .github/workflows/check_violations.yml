@@ -28,7 +28,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Update README
-        if: $VIOLATION_DETECTED == 'true'
+        if: env.VIOLATION_DETECTED == 'true'
         run: |
           echo "Violation detected. Updating README..."
           python update_readme.py
@@ -38,4 +38,4 @@ jobs:
           git commit -m "Add new copyright violator channel"
           git push
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}   
