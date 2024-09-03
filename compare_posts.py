@@ -69,6 +69,20 @@ def get_telegram_post_content(url):
     }
 
 
+def extract_urls_from_issue_body(body):
+
+    matches = extract_channel_and_post_ids(body,2)
+
+    tgc1, tgc2 = matches[0][0], matches[1][0]
+    if tgc1 == tgc2:
+        raise ValueError(
+            f"Telegram channels are the same. \ntgc1: {tgc1}\ntgc2: {tgc2}"
+        )
+
+    urls = [f"https://t.me/{channel}/{post_id}" for channel, post_id in matches[:2]]
+    return urls[0], urls[1]
+
+
 def validate_authenticity(orig_post: dict, voilator_post: dict):
     threshold = float(os.environ.get("SIMILARITY_THRESHOLD", "0.8"))
 
@@ -140,7 +154,7 @@ def main():
     response.raise_for_status()
     issue_data = response.json()
 
-    original_url, violator_url = (issue_data["body"])
+    original_url, violator_url = extract_urls_from_issue_body(issue_data["body"])
 
     if not validators.url(original_url):
         raise ValueError(f"Original URL not valid: {original_url}")
