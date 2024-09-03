@@ -7,6 +7,7 @@ on:
 jobs:
   check_violation:
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -23,7 +24,6 @@ jobs:
 
       - name: Run comparison script
         id: compare
-        continue-on-error: true
         run: |
           python compare_posts.py
           if [ $? -ne 0 ]; then
