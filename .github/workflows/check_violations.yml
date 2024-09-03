@@ -37,7 +37,7 @@ jobs:
           echo "ERROR_MESSAGE=$(cat error_message.txt)" >> $GITHUB_ENV
         env:
           ERROR_OCCURED: ${{env.ERROR_OCCURED}}
-        
+
       - name: Install GitHub CLI
         run: sudo apt-get install gh -y
 
@@ -49,7 +49,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ERROR_OCCURED: ${{env.ERROR_OCCURED}}
-
+          ERROR_MESSAGE: ${{ env.ERROR_MESSAGE }}
 
       - name: Echo result
         if: success() && env.VIOLATION_DETECTED == 'true' && env.ERROR_OCCURED != 'true'
@@ -62,7 +62,6 @@ jobs:
           SIMILARITY: ${{ env.SIMILARITY }}
           VIOLATOR_URL: ${{ env.VIOLATOR_URL }}
           ERROR_OCCURED: ${{env.ERROR_OCCURED}}
-
 
       - name: Run Updator
         if: success() && env.VIOLATION_DETECTED == 'true'
