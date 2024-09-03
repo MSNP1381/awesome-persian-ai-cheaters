@@ -44,7 +44,7 @@ jobs:
       - name: Close Issue
         if: ${{env.ERROR_OCCURED}}=='true'
         run: |
-          gh issue close ${{ env.ISSUE_NUMBER }} --comment "Closing reason:\n${{ env.ERROR_MESSAGE }}" -r "not_planned"
+          gh issue close ${{ env.ISSUE_NUMBER }} --comment "Closing reason:\n${{ env.ERROR_MESSAGE }}" -r "not planned"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
