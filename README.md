@@ -2,6 +2,6 @@
 
 This repository tracks Telegram channels that have been identified as violating copyright by copying content from other channels.
 
-how to use this: [usage.md](usage.md)
+for more information see: [ContentProtection.md](ContentProtection.md)
 
 ## List of Violating Channels
