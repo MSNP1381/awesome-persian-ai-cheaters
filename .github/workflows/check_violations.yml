@@ -14,7 +14,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.x'
+          python-version: "3.x"
 
       - name: Install dependencies
         run: |
@@ -23,40 +23,47 @@ jobs:
 
       - name: Run comparison script
         id: compare
+        continue-on-error: true
         run: |
           python compare_posts.py
           if [ $? -ne 0 ]; then
-            echo "::error::Comparison script failed"
+            echo "Comparison script failed" > error_message.txt
             exit 1
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-      # - name: Process comparison results
-      #   id: process_results
-      #   run: |
-      #     if [ -f violation_result.txt ]; then
-      #       echo "VIOLATION_DETECTED=$(grep VIOLATION_DETECTED violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
-      #       echo "SIMILARITY=$(grep SIMILARITY violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
-      #       echo "VIOLATOR_URL=$(grep VIOLATOR_URL violation_result.txt | cut -d'=' -f2)" >> $GITHUB_ENV
-      #       echo "Results processed successfully"
-      #     else
-      #       echo "::error::violation_result.txt not found"
-      #       exit 1
-      #     fi
+
+      - name: Set error message
+        if: failure()
+        run: |
+          echo "ERROR_MESSAGE=$(cat error_message.txt)" >> $GITHUB_ENV
+
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Close Issue
+        if: failure()
+        run: |
+          gh issue close ${{ env.ISSUE_NUMBER }} --comment "Closing reason:\n${{ env.ERROR_MESSAGE }}" -r "not_planned"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ERROR_MESSAGE: ${{env.ERROR_MESSAGE}}
 
       - name: Echo result
+        if: success() && env.VIOLATION_DETECTED == 'true'
         run: |
           echo "Violation Detected: ${{ env.VIOLATION_DETECTED }}"
           echo "Similarity: ${{ env.SIMILARITY }}"
           echo "Violator URL: ${{ env.VIOLATOR_URL }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED}}
-          SIMILARITY: ${{ env.SIMILARITY}}
-          VIOLATOR_URL: ${{ env.VIOLATOR_URL}}
-      - name : Run Updator
-        if: env.VIOLATION_DETECTED == 'true'
+          VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED }}
+          SIMILARITY: ${{ env.SIMILARITY }}
+          VIOLATOR_URL: ${{ env.VIOLATOR_URL }}
+
+      - name: Run Updator
+        if: success() && env.VIOLATION_DETECTED == 'true'
         run: |
           echo "Violation detected. Updating README..."
           python update_readme.py
@@ -65,16 +72,15 @@ jobs:
             exit 1
           fi
         env:
-            VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED}}
-            SIMILARITY: ${{ env.SIMILARITY}}
-            VIOLATOR_URL: ${{ env.VIOLATOR_URL}}
-      - name: commit README
-        if: env.VIOLATION_DETECTED == 'true'
+          VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED }}
+          SIMILARITY: ${{ env.SIMILARITY }}
+          VIOLATOR_URL: ${{ env.VIOLATOR_URL }}
 
+      - name: Commit README
+        if: success() && env.VIOLATION_DETECTED == 'true'
         uses: EndBug/add-and-commit@v9
         with:
-            add: README.md
+          add: README.md
         env:
-            # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED}}
-            GITHUB_TOKEN: ${{secrets.PAT}}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED }}
