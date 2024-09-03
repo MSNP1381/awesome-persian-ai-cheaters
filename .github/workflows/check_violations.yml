@@ -26,32 +26,33 @@ jobs:
         id: compare
         run: |
           python compare_posts.py
-          if [ $? -ne 0 ]; then
-            echo "Comparison script failed" > error_message.txt
-            exit 1
-          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ERROR_OCCURED: ${{env.ERROR_OCCURED}}
 
       - name: Set error message
-        if: failure()
+        if: ${{env.ERROR_OCCURED}}=='true'
         run: |
           echo "ERROR_MESSAGE=$(cat error_message.txt)" >> $GITHUB_ENV
-
+        env:
+          ERROR_OCCURED: ${{env.ERROR_OCCURED}}
+        
       - name: Install GitHub CLI
         run: sudo apt-get install gh -y
 
       - name: Close Issue
-        if: failure()
+        if: ${{env.ERROR_OCCURED}}=='true'
         run: |
           gh issue close ${{ env.ISSUE_NUMBER }} --comment "Closing reason:\n${{ env.ERROR_MESSAGE }}" -r "not_planned"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ERROR_OCCURED: ${{env.ERROR_OCCURED}}
+
 
       - name: Echo result
-        if: success() && env.VIOLATION_DETECTED == 'true'
+        if: success() && env.VIOLATION_DETECTED == 'true' && env.ERROR_OCCURED != 'true'
         run: |
           echo "Violation Detected: ${{ env.VIOLATION_DETECTED }}"
           echo "Similarity: ${{ env.SIMILARITY }}"
@@ -60,6 +61,8 @@ jobs:
           VIOLATION_DETECTED: ${{ env.VIOLATION_DETECTED }}
           SIMILARITY: ${{ env.SIMILARITY }}
           VIOLATOR_URL: ${{ env.VIOLATOR_URL }}
+          ERROR_OCCURED: ${{env.ERROR_OCCURED}}
+
 
       - name: Run Updator
         if: success() && env.VIOLATION_DETECTED == 'true'
